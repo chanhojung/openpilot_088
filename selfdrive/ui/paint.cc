@@ -96,15 +96,15 @@ static void ui_draw_circle_image(const UIState *s, int center_x, int center_y, i
   }
 }
 
-static void draw_lead(UIState *s, const cereal::RadarState::LeadData::Reader &lead_data, const vertex_data &vd) {
+static void draw_lead(UIState *s, const cereal::ModelDataV2::LeadDataV3::Reader &lead_data, const vertex_data &vd) {
   // Draw lead car indicator
   auto [x, y] = vd;
 
   float fillAlpha = 0;
   float speedBuff = 10.;
   float leadBuff = 40.;
-  float d_rel = lead_data.getDRel();
-  float v_rel = lead_data.getVRel();
+  float d_rel = lead_data.getX()[0];
+  float v_rel = lead_data.getV()[0];
   if (d_rel < leadBuff) {
     fillAlpha = 255*(1.0-(d_rel/leadBuff));
     if (v_rel < 0) {
@@ -126,11 +126,11 @@ static void draw_lead(UIState *s, const cereal::RadarState::LeadData::Reader &le
 
   if (s->scene.radarDistance < 149) {                                         //radar가 인식되면
     //draw_chevron(s, x, y, sz, nvgRGBA(201, 34, 49, fillAlpha), COLOR_ORANGE); //orange ==> red
-    ui_draw_text(s, x, y + sz/1.5f, "R", 20 * 2.5, COLOR_WHITE, "sans-bold");
+    //ui_draw_text(s, x, y + sz/1.5f, "R", 20 * 2.5, COLOR_WHITE, "sans-bold");
     ui_draw_image(s, {x_l, y_l, sz_w * 2, sz_h}, "lead_under_radar", 1.0f);  
   } else {                                                                                 //camera가 인식되면
     //draw_chevron(s, x, y, sz, nvgRGBA(150, 0, 200, fillAlpha), nvgRGBA(0, 150, 200, 200)); //oceanblue ==> purple
-    ui_draw_text(s, x, y + sz/1.5f, "C", 20 * 2.5, COLOR_ORANGE, "sans-bold");
+    //ui_draw_text(s, x, y + sz/1.5f, "C", 20 * 2.5, COLOR_ORANGE, "sans-bold");
     ui_draw_image(s, {x_l, y_l, sz_w * 2, sz_h}, "lead_under_camera", 1.0f);  
   }
 }
@@ -139,9 +139,9 @@ static float lock_on_rotation[] = {0.f, 0.1f*NVG_PI, 0.3f*NVG_PI, 0.6f*NVG_PI, 1
 
 static float lock_on_scale[] = {1.f, 1.05f, 1.1f, 1.15f, 1.2f, 1.15f, 1.1f, 1.05f, 1.f, 0.95f, 0.9f, 0.85f, 0.8f, 0.85f, 0.9f, 0.95f};
 
-static void draw_lead_custom(UIState *s, const cereal::RadarState::LeadData::Reader &lead_data, const vertex_data &vd) {
+static void draw_lead_custom(UIState *s, const cereal::ModelDataV2::LeadDataV3::Reader &lead_data, const vertex_data &vd) {
     auto [x, y] = vd;
-    float d_rel = lead_data.getDRel();
+    float d_rel = lead_data.getX()[0];
     auto intrinsic_matrix = s->wide_camera ? ecam_intrinsic_matrix : fcam_intrinsic_matrix;
     float zoom = ZOOM / intrinsic_matrix.v[0];
     float sz = std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * zoom;
@@ -170,9 +170,9 @@ static void draw_lead_custom(UIState *s, const cereal::RadarState::LeadData::Rea
     nvgRestore(s->vg);
 }
 
-static void draw_side_lead_custom(UIState *s, const cereal::RadarState::LeadData::Reader &lead_data, const vertex_data &vd) {
+static void draw_side_lead_custom(UIState *s, const cereal::ModelDataV2::LeadDataV3::Reader &lead_data, const vertex_data &vd) {
     auto [x, y] = vd;
-    float d_rel = lead_data.getDRel();
+    float d_rel = lead_data.getX()[0];
     float sz = std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * 2.35;
     x = std::clamp(x, 0.f, s->fb_w - sz / 2);
     y = std::fmin(s->fb_h - sz * .6, y);
@@ -305,23 +305,22 @@ static void ui_draw_world(UIState *s) {
   // Draw lead indicators if openpilot is handling longitudinal
   //if (s->scene.longitudinal_control) {
 
-  auto radar_state = (*s->sm)["radarState"].getRadarState();
-  auto lead_one = radar_state.getLeadOne();
-  auto lead_two = radar_state.getLeadTwo();
+  auto lead_one = (*s->sm)["modelV2"].getModelV2().getLeadsV3()[0];
+  auto lead_two = (*s->sm)["modelV2"].getModelV2().getLeadsV3()[1];  
 
   if (scene.lead_custom) {
-    if (lead_one.getStatus() && lead_one.getRadar()) {
-      draw_lead_custom(s, lead_one, scene.lead_vertices_radar[0]);
+    if (lead_one.getProb() > .5) {
+      draw_lead_custom(s, lead_one, scene.lead_vertices[0]);
     }
-    if (lead_two.getStatus() && (std::abs(lead_one.getDRel() - lead_two.getDRel()) > 3.0)) {
+    if (lead_two.getProb() > .5 && (std::abs(lead_one.getX()[0] - lead_two.getX()[0]) > 3.0)) {
       draw_side_lead_custom(s, lead_two, scene.lead_vertices[1]);    
     }
   }
   else {
-    if (lead_one.getStatus()) {
+    if (lead_one.getProb() > .5) {
       draw_lead(s, lead_one, scene.lead_vertices[0]);
     }
-    if (lead_two.getStatus() && (std::abs(lead_one.getDRel() - lead_two.getDRel()) > 3.0)) {
+    if (lead_two.getProb() > .5 && (std::abs(lead_one.getX()[0] - lead_two.getX()[0]) > 3.0)) {
       draw_lead(s, lead_two, scene.lead_vertices[1]);
     }
   }
@@ -1023,26 +1022,27 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
   int label_fontSize=15*0.8;
   int uom_fontSize = 15*0.8;
   int bb_uom_dx =  (int)(bb_w /2 - uom_fontSize*2.5);
+  auto lead_one = (*s->sm)["modelV2"].getModelV2().getLeadsV3()[0];
 
   //add visual radar relative distance
   if (true) {
     char val_str[16];
     char uom_str[6];
     NVGcolor val_color = COLOR_WHITE_ALPHA(200);
-    if (scene.lead_data[0].getStatus()) {
+    if (lead_one.getProb() > .5) {
       //show RED if less than 5 meters
       //show orange if less than 15 meters
-      if((int)(scene.lead_data[0].getDRel()) < 15) {
+      if((int)(lead_one.getX()[0] - 2.5) < 15) {
         val_color = COLOR_ORANGE_ALPHA(200);
       }
-      if((int)(scene.lead_data[0].getDRel()) < 5) {
+      if((int)(lead_one.getX()[0] - 2.5) < 5) {
         val_color = COLOR_RED_ALPHA(200);
       }
       // lead car relative distance is always in meters
-      if((float)(scene.lead_data[0].getDRel()) < 10) {
-        snprintf(val_str, sizeof(val_str), "%.1f", (float)scene.lead_data[0].getDRel());
+      if((float)(lead_one.getX()[0] -2.5) < 10) {
+        snprintf(val_str, sizeof(val_str), "%.1f", (float)(lead_one.getX()[0] - 2.5));
       } else {
-        snprintf(val_str, sizeof(val_str), "%d", (int)scene.lead_data[0].getDRel());
+        snprintf(val_str, sizeof(val_str), "%d", (int)(lead_one.getX()[0] - 2.5));
       }
 
     } else {
@@ -1060,20 +1060,20 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
     char val_str[16];
     char uom_str[6];
     NVGcolor val_color = COLOR_WHITE_ALPHA(200);
-    if (scene.lead_data[0].getStatus()) {
+    if (lead_one.getProb() > .5) {
       //show Orange if negative speed (approaching)
       //show Orange if negative speed faster than 5mph (approaching fast)
-      if((int)(scene.lead_data[0].getVRel()) < 0) {
+      if((int)((lead_one.getV()[0] - scene.car_state.getVEgoOP()) * 3.6) < 0) {
         val_color = nvgRGBA(255, 188, 3, 200);
       }
-      if((int)(scene.lead_data[0].getVRel()) < -5) {
+      if((int)((lead_one.getV()[0] - scene.car_state.getVEgoOP()) * 3.6) < -5) {
         val_color = nvgRGBA(255, 0, 0, 200);
       }
       // lead car relative speed is always in meters
       if (scene.is_metric) {
-         snprintf(val_str, sizeof(val_str), "%d", (int)(scene.lead_data[0].getVRel() * 3.6 + 0.5));
+         snprintf(val_str, sizeof(val_str), "%d", (int)((lead_one.getV()[0] - scene.car_state.getVEgoOP()) * 3.6));
       } else {
-         snprintf(val_str, sizeof(val_str), "%d", (int)(scene.lead_data[0].getVRel() * 2.2374144 + 0.5));
+         snprintf(val_str, sizeof(val_str), "%d", (int)((lead_one.getV()[0] - scene.car_state.getVEgoOP()) * 2.2374144));
       }
     } else {
        snprintf(val_str, sizeof(val_str), "-");
