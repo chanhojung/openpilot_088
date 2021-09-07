@@ -9,7 +9,7 @@ import cereal.messaging as messaging
 from cereal import car
 from common.params import Params, put_nonblocking
 from common.realtime import set_realtime_priority, DT_MDL
-from common.numpy_fast import clip
+from common.numpy_fast import clip, interp
 from selfdrive.locationd.models.car_kf import CarKalman, ObservationKind, States
 from selfdrive.locationd.models.constants import GENERATED_DIR
 from selfdrive.swaglog import cloudlog
