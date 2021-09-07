@@ -65,25 +65,15 @@ static int get_path_length_idx(const cereal::ModelDataV2::XYZTData::Reader &line
   return max_idx;
 }
 
-static void update_leads(UIState *s, const cereal::RadarState::Reader &radar_state, std::optional<cereal::ModelDataV2::XYZTData::Reader> line) {
+static void update_leads(UIState *s, const cereal::ModelDataV2::Reader &model) {
+  auto leads = model.getLeadsV3();
+  auto model_position = model.getPosition();
   for (int i = 0; i < 2; ++i) {
-    auto lead_data = (i == 0) ? radar_state.getLeadOne() : radar_state.getLeadTwo();
-    if (lead_data.getStatus()) {
-      float z = line ? (*line).getZ()[get_path_length_idx(*line, lead_data.getDRel())] : 0.0;
-      // negative because radarState uses left positive convention
-      calib_frame_to_full_frame(s, lead_data.getDRel(), -lead_data.getYRel(), z + 1.22, &s->scene.lead_vertices[i]);
+    if (leads[i].getProb() > 0.5) {
+      float z = model_position.getZ()[get_path_length_idx(model_position, leads[i].getX()[0])];
+      calib_frame_to_full_frame(s, leads[i].getX()[0], leads[i].getY()[0], z + 1.22, &s->scene.lead_vertices[i]);
     }
-    s->scene.lead_data[i] = lead_data;
   }
-}
-
-static void update_leads_radar(UIState *s, const cereal::RadarState::Reader &radar_state, std::optional<cereal::ModelDataV2::XYZTData::Reader> line) {
-  auto lead_data = radar_state.getLeadOne();
-    if (lead_data.getStatus() && lead_data.getRadar()) {
-      float z = line ? (*line).getZ()[get_path_length_idx(*line, lead_data.getDRel())] : 0.0;
-      // negative because radarState uses left positive convention
-      calib_frame_to_full_frame(s, lead_data.getDRel(), -lead_data.getYRel(), z + 1.22, &s->scene.lead_vertices_radar[0]);
-    }
 }
 
 static void update_line_data(const UIState *s, const cereal::ModelDataV2::XYZTData::Reader &line,
@@ -101,7 +91,6 @@ static void update_line_data(const UIState *s, const cereal::ModelDataV2::XYZTDa
 }
 
 static void update_model(UIState *s, const cereal::ModelDataV2::Reader &model) {
-  SubMaster &sm = *(s->sm);
   UIScene &scene = s->scene;
   auto model_position = model.getPosition();
   float max_distance = std::clamp(model_position.getX()[TRAJECTORY_SIZE - 1],
@@ -124,15 +113,14 @@ static void update_model(UIState *s, const cereal::ModelDataV2::Reader &model) {
     update_line_data(s, road_edges[i], 0.025, 0, &scene.road_edge_vertices[i], max_idx);
   }
 
-  scene.lateral_plan = sm["lateralPlan"].getLateralPlan();
   // update path
-  auto lead_one = (*s->sm)["radarState"].getRadarState().getLeadOne();
-  if (lead_one.getStatus()) {
-    const float lead_d = lead_one.getDRel() * 2.;
+  auto lead_one = model.getLeadsV3()[0];
+  if (lead_one.getProb() > 0.5) {
+    const float lead_d = lead_one.getX()[0] * 2.;
     max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
   }
   max_idx = get_path_length_idx(model_position, max_distance);
-  update_line_data(s, model_position, 0.25, 1.22, &scene.track_vertices, max_idx);
+  update_line_data(s, model_position, 0.5, 1.22, &scene.track_vertices, max_idx);
 }
 
 static void update_sockets(UIState *s) {
@@ -206,13 +194,11 @@ static void update_state(UIState *s) {
     scene.liveParams.stiffnessFactor = live_data.getStiffnessFactor();
     scene.liveParams.steerRatio = live_data.getSteerRatio();
   }
-  if (sm.updated("radarState") && s->vg) {
-    std::optional<cereal::ModelDataV2::XYZTData::Reader> line;
-    if (sm.rcv_frame("modelV2") > 0) {
-      line = sm["modelV2"].getModelV2().getPosition();
-    }
-    update_leads(s, sm["radarState"].getRadarState(), line);
-  }
+  if (sm.updated("modelV2") && s->vg) {
+    auto model = sm["modelV2"].getModelV2();
+    update_model(s, model);
+    update_leads(s, model);
+  }  
   if (sm.updated("liveCalibration")) {
     scene.world_objects_visible = true;
     auto rpy_list = sm["liveCalibration"].getLiveCalibration().getRpyCalib();
@@ -229,9 +215,6 @@ static void update_state(UIState *s) {
         scene.view_from_calib.v[i*3 + j] = view_from_calib(i,j);
       }
     }
-  }
-  if (sm.updated("modelV2") && s->vg) {
-    update_model(s, sm["modelV2"].getModelV2());
   }
   if (sm.updated("deviceState")) {
     scene.deviceState = sm["deviceState"].getDeviceState();
@@ -263,13 +246,6 @@ static void update_state(UIState *s) {
     scene.altitudeUblox = ge_data.getAltitude();
     scene.bearingUblox = ge_data.getBearingDeg();
   }
-  if (sm.updated("radarState") && s->vg) {
-    std::optional<cereal::ModelDataV2::XYZTData::Reader> line;
-    if (sm.rcv_frame("modelV2") > 0) {
-      line = sm["modelV2"].getModelV2().getPosition();
-    }
-    update_leads_radar(s, sm["radarState"].getRadarState(), line);
-  }  
   if (sm.updated("carParams")) {
     scene.longitudinal_control = sm["carParams"].getCarParams().getOpenpilotLongitudinalControl();
     scene.steerMax_V = sm["carParams"].getCarParams().getSteerMaxV()[0];
@@ -492,9 +468,9 @@ static void update_status(UIState *s) {
 
 QUIState::QUIState(QObject *parent) : QObject(parent) {
   ui_state.sm = std::make_unique<SubMaster, const std::initializer_list<const char *>>({
-    "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState", "roadCameraState",
+    "modelV2", "controlsState", "liveCalibration", "deviceState", "roadCameraState",
     "pandaState", "carParams", "driverMonitoringState", "sensorEvents", "carState", "liveLocationKalman",
-    "ubloxGnss", "gpsLocationExternal", "radarState", "liveParameters", "lateralPlan", "liveMapData",
+    "ubloxGnss", "gpsLocationExternal", "liveParameters", "lateralPlan", "liveMapData",
   });
 
   ui_state.fb_w = vwp_w;
