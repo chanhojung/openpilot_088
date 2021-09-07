@@ -122,7 +122,7 @@ static void draw_lead(UIState *s, const cereal::ModelDataV2::LeadDataV3::Reader 
   int sz_w = sz * 2;
   int sz_h = sz * 1;
   int x_l = x - sz_w;
-  int y_l = y - 10;
+  int y_l = y;
 
   if (s->scene.radarDistance < 149) {                                         //radar가 인식되면
     //draw_chevron(s, x, y, sz, nvgRGBA(201, 34, 49, fillAlpha), COLOR_ORANGE); //orange ==> red
@@ -159,9 +159,9 @@ static void draw_lead_radar(UIState *s, const cereal::ModelDataV2::LeadDataV3::R
     if(s->sm->frame % 2 == 0) {
         s->lock_on_anim_index++;
     }
-    int img_size = 80;
+    int img_size = 50;
     if(d_rel < 100) {
-        img_size = (int)(-2/5 * d_rel + 120);
+        img_size = (int)(-2/5 * d_rel + 90);
     }
     nvgSave(s->vg);
     nvgTranslate(s->vg, x, y);
