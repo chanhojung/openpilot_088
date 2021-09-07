@@ -130,7 +130,7 @@ def main(sm=None, pm=None):
 
   angle_offset_average = params['angleOffsetAverageDeg']
   angle_offset = angle_offset_average
-
+  modelSpeed = 0
   while True:
     sm.update()
 
@@ -138,6 +138,9 @@ def main(sm=None, pm=None):
       if updated:
         t = sm.logMonoTime[which] * 1e-9
         learner.handle_log(t, which, sm[which])
+
+    if sm.updated['lateralPlan']:
+      modelSpeed = sm['lateralPlan'].modelSpeed * 3.6
 
     if sm.updated['liveLocationKalman']:
       x = learner.kf.x
@@ -152,6 +155,17 @@ def main(sm=None, pm=None):
       msg = messaging.new_message('liveParameters')
       msg.logMonoTime = sm.logMonoTime['carState']
 
+      dRate = 1.0
+      if modelSpeed:
+        dRate = interp( modelSpeed, [200,350], [ 1, 0.9 ] )
+      steerRatio  = float(x[States.STEER_RATIO])
+     # print( "modelSpeed={:.3f} dRate={:.3f}".format(modelSpeed, dRate) );
+      steerRatio *= dRate
+      if steerRatio > 18.5:
+        steerRatio = 18.5
+      elif steerRatio < 12:
+        steerRatio = 12
+        
       msg.liveParameters.posenetValid = True
       msg.liveParameters.sensorValid = True
       msg.liveParameters.steerRatio = float(x[States.STEER_RATIO])

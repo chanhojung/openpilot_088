@@ -913,6 +913,9 @@ struct LateralPlan @0xe1e9318e2ae8b51e {
   vCurvature @33 :Float32;
   lanelessMode @34 :Bool;
 
+  # atom
+  modelSpeed @35 :Float32;
+
   enum Desire {
     none @0;
     turnLeft @1;
