@@ -161,10 +161,10 @@ static void draw_lead_radar(UIState *s, const cereal::ModelDataV2::LeadDataV3::R
     }
     int img_size = 50;
     if(d_rel < 100) {
-        img_size = (int)(-2/5 * d_rel + 90);
+        img_size = (int)(-2/3 * d_rel + 120);
     }
     nvgSave(s->vg);
-    nvgTranslate(s->vg, x, y);
+    nvgTranslate(s->vg, x, y - (img_size / 2) );
     nvgRotate(s->vg, lock_on_rotation[s->lock_on_anim_index % 9]);
     ui_draw_image(s, {-(img_size / 2), -(img_size / 2), img_size, img_size}, image, img_alpha);
     nvgRestore(s->vg);
