@@ -77,7 +77,7 @@ def main(sm=None, pm=None):
   set_realtime_priority(5)
 
   if sm is None:
-    sm = messaging.SubMaster(['liveLocationKalman', 'carState'], poll=['liveLocationKalman'])
+    sm = messaging.SubMaster(['liveLocationKalman', 'carState', 'lateralPlan'], poll=['liveLocationKalman'])
   if pm is None:
     pm = messaging.PubMaster(['liveParameters'])
 
@@ -168,7 +168,7 @@ def main(sm=None, pm=None):
         
       msg.liveParameters.posenetValid = True
       msg.liveParameters.sensorValid = True
-      msg.liveParameters.steerRatio = float(x[States.STEER_RATIO])
+      msg.liveParameters.steerRatio = steerRatio # float(x[States.STEER_RATIO])
       msg.liveParameters.stiffnessFactor = float(x[States.STIFFNESS])
       msg.liveParameters.angleOffsetAverageDeg = angle_offset_average
       msg.liveParameters.angleOffsetDeg = angle_offset
