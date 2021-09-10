@@ -204,9 +204,8 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
 
   main_layout->addWidget(horizontal_line());
 
-  // power buttons
-  QHBoxLayout *power_layout = new QHBoxLayout();
-  power_layout->setSpacing(30);
+  QHBoxLayout *reset_layout = new QHBoxLayout();
+  reset_layout->setSpacing(30);
 
   QPushButton *restart_openpilot_btn = new QPushButton("소프트재시작");
   restart_openpilot_btn->setStyleSheet("height: 120px;border-radius: 15px;background-color: #393939;");
@@ -221,6 +220,10 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
   main_layout->addWidget(horizontal_line());
   main_layout->addLayout(reset_layout);
 
+  // power buttons
+  QHBoxLayout *power_layout = new QHBoxLayout();
+  power_layout->setSpacing(30);
+  
   QPushButton *reboot_btn = new QPushButton("재시작");
   reboot_btn->setObjectName("reboot_btn");
   power_layout->addWidget(reboot_btn);
