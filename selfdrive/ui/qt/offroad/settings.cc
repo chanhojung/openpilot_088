@@ -140,7 +140,7 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
       Params().remove("CalibrationParams");
       Params().remove("LiveParameters");
       QTimer::singleShot(1000, []() {
-        Hardware::reboot();
+        Params().putBool("SoftRestartTriggered", true);
       });
     }
   });
@@ -207,6 +207,19 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
   // power buttons
   QHBoxLayout *power_layout = new QHBoxLayout();
   power_layout->setSpacing(30);
+
+  QPushButton *restart_openpilot_btn = new QPushButton("소프트재시작");
+  restart_openpilot_btn->setStyleSheet("height: 120px;border-radius: 15px;background-color: #393939;");
+  reset_layout->addWidget(restart_openpilot_btn);
+  QObject::connect(restart_openpilot_btn, &QPushButton::released, [=]() {
+    emit closeSettings();
+    QTimer::singleShot(1000, []() {
+      Params().putBool("SoftRestartTriggered", true);
+    });
+  });
+
+  main_layout->addWidget(horizontal_line());
+  main_layout->addLayout(reset_layout);
 
   QPushButton *reboot_btn = new QPushButton("재시작");
   reboot_btn->setObjectName("reboot_btn");
@@ -684,6 +697,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
   DevicePanel *device = new DevicePanel(this);
   QObject::connect(device, &DevicePanel::reviewTrainingGuide, this, &SettingsWindow::reviewTrainingGuide);
   QObject::connect(device, &DevicePanel::showDriverView, this, &SettingsWindow::showDriverView);
+  QObject::connect(device, &DevicePanel::closeSettings, this, &SettingsWindow::closeSettings);  
 
   QList<QPair<QString, QWidget *>> panels = {
     {"장치", device},
