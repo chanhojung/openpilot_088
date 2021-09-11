@@ -119,19 +119,19 @@ static void draw_lead(UIState *s, const cereal::ModelDataV2::LeadDataV3::Reader 
   y = std::fmin(s->fb_h - sz * .6, y);
   nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
 
-  int sz_w = sz * 3;
+  int sz_w = sz * 2;
   int sz_h = sz * 1;
-  int x_l = x - sz_w * 1.5;
+  int x_l = x - sz_w;
   int y_l = y;
 
   if (s->scene.radarDistance < 149) {                                         //radar가 인식되면
     //draw_chevron(s, x, y, sz, nvgRGBA(201, 34, 49, fillAlpha), COLOR_ORANGE); //orange ==> red
     //ui_draw_text(s, x, y + sz/1.5f, "R", 20 * 2.5, COLOR_WHITE, "sans-bold");
-    ui_draw_image(s, {x_l, y_l, sz_w * 3, sz_h}, "lead_under_radar", 0.8f);  
+    ui_draw_image(s, {x_l, y_l, sz_w * 2, sz_h}, "lead_under_radar", 0.8f);  
   } else {                                                                                 //camera가 인식되면
     //draw_chevron(s, x, y, sz, nvgRGBA(150, 0, 200, fillAlpha), nvgRGBA(0, 150, 200, 200)); //oceanblue ==> purple
     //ui_draw_text(s, x, y + sz/1.5f, "C", 20 * 2.5, COLOR_ORANGE, "sans-bold");
-    ui_draw_image(s, {x_l, y_l, sz_w * 3, sz_h}, "lead_under_camera", 0.8f);  
+    ui_draw_image(s, {x_l, y_l, sz_w * 2, sz_h}, "lead_under_camera", 0.8f);  
   }
 }
 
@@ -162,7 +162,7 @@ static void draw_lead_radar(UIState *s, const cereal::ModelDataV2::LeadDataV3::R
     }
     int img_size = 60;
     if(d_rel < 100) {
-        img_size = (int)((-3 / 5) * d_rel + 120);
+        img_size = (int)(float(-3./5.) * d_rel + 120);
     }
     nvgSave(s->vg);
     nvgTranslate(s->vg, x, y - (img_size / 2) );
@@ -193,7 +193,7 @@ static void draw_lead_custom(UIState *s, const cereal::ModelDataV2::LeadDataV3::
     }
     int img_size = 80;
     if(d_rel < 100) {
-        img_size = (int)((-2/5) * d_rel + 120);
+        img_size = (int)(float(-2./5.) * d_rel + 120);
     }
     nvgSave(s->vg);
     nvgTranslate(s->vg, x, y);
@@ -217,7 +217,7 @@ static void draw_side_lead_custom(UIState *s, const cereal::ModelDataV2::LeadDat
 
     int img_size = 80;
     if(d_rel < 100) {
-        img_size = (int)((-2/5) * d_rel + 120);
+        img_size = (int)(float(-2./5.) * d_rel + 120);
     }
 
     nvgSave(s->vg);
