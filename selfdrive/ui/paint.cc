@@ -113,7 +113,7 @@ static void draw_lead(UIState *s, const cereal::ModelDataV2::LeadDataV3::Reader 
     fillAlpha = (int)(fmin(fillAlpha, 255));
   }
 
-  float sz = std::clamp((30 * 30) / (d_rel / 2 + 20), 10.0f, 45.0f) * 2.35;
+  float sz = std::clamp((30 * 30) / (d_rel / 2 + 15), 12.0f, 60.0f) * 2.35;
   //float sz = std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * 2.35;
   x = std::clamp(x, 0.f, s->fb_w - sz / 2);
   y = std::fmin(s->fb_h - sz * .6, y);
@@ -142,9 +142,10 @@ static float lock_on_scale[] = {1.f, 1.05f, 1.1f, 1.15f, 1.2f, 1.15f, 1.1f, 1.05
 static void draw_lead_radar(UIState *s, const cereal::ModelDataV2::LeadDataV3::Reader &lead_data, const vertex_data &vd) {
     auto [x, y] = vd;
     float d_rel = lead_data.getX()[0];
-    auto intrinsic_matrix = s->wide_camera ? ecam_intrinsic_matrix : fcam_intrinsic_matrix;
-    float zoom = ZOOM / intrinsic_matrix.v[0];
-    float sz = std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * zoom;
+    // auto intrinsic_matrix = s->wide_camera ? ecam_intrinsic_matrix : fcam_intrinsic_matrix;
+    // float zoom = ZOOM / intrinsic_matrix.v[0];
+    float sz = std::clamp((30 * 30) / (d_rel / 2 + 15), 12.0f, 60.0f) * zoom;
+    // float sz = std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * zoom;
     x = std::clamp(x, 0.f, s->fb_w - sz / 2);
     if(d_rel < 30) {
       const float c = 0.7f;
