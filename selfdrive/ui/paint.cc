@@ -160,9 +160,9 @@ static void draw_lead_radar(UIState *s, const cereal::ModelDataV2::LeadDataV3::R
     if(s->sm->frame % 2 == 0) {
         s->lock_on_anim_index++;
     }
-    int img_size = 50;
+    int img_size = 60;
     if(d_rel < 100) {
-        img_size = (int)(-2/3 * d_rel + 120);
+        img_size = (int)(-3/5 * d_rel + 120);
     }
     nvgSave(s->vg);
     nvgTranslate(s->vg, x, y - (img_size / 2) );
