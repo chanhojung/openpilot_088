@@ -404,7 +404,7 @@ static void ui_draw_tpms(UIState *s)
     } else if (fl < 30 || fr < 30 || rl < 30 || rr < 30 || fl > 45 || fr > 45 || rl > 45 || rr > 45) {
       ui_fill_rect(s->vg, rect, COLOR_ORANGE_ALPHA(80), 20);
     } else {
-      ui_fill_rect(s->vg, rect, COLOR_BLACK_ALPHA(80), 20);
+      ui_fill_rect(s->vg, rect, COLOR_GREEN_ALPHA(80), 20);
     }
 
     ui_draw_image(s, {x, y, w, h}, "tire_pressure", 0.8f);
