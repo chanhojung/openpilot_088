@@ -389,35 +389,45 @@ static void ui_draw_tpms(UIState *s)
     const float rl = tpms.getRl();
     const float rr = tpms.getRr();
 
-    const int w = 58;
-    const int h = 126;
-    int x = 1920 - 155;
-    int y = 735;
+    const int w = 55;
+    const int h = 123;
+    int x = 1920 - 156;
+    int y = 740;
 
-    const int margin = 10;
+    const Rect rect = {x - w - 10, y - 5, w * 3 + 20, h + 10};
+
+    // Draw Border
+    ui_draw_rect(s->vg, rect, COLOR_WHITE_ALPHA(100), 10, 20.);
+    // Draw Background
+    if (fl < 5 || fr < 5 || rl < 5 || rr < 5 || fl > 60 || fr > 60 || rl > 60 || rr > 60) {
+      ui_fill_rect(s->vg, rect, COLOR_RED_ALPHA(80), 20);
+    } else if (fl < 30 || fr < 30 || rl < 30 || rr < 30 ) {
+      ui_fill_rect(s->vg, rect, COLOR_ORANGE_ALPHA(80), 20);
+    } else {
+      ui_fill_rect(s->vg, rect, COLOR_BLACK_ALPHA(80), 20);
+    }
 
     ui_draw_image(s, {x, y, w, h}, "tire_pressure", 0.8f);
 
-    nvgFontSize(s->vg, 45);
+    nvgFontSize(s->vg, 43);
     nvgFontFace(s->vg, "sans-bold");
 
     nvgTextAlign(s->vg, NVG_ALIGN_RIGHT);
     nvgFillColor(s->vg, get_tpms_color(fl));
-    nvgText(s->vg, x-margin, y+50, get_tpms_text(fl).c_str(), NULL);
+    nvgText(s->vg, x, y+50, get_tpms_text(fl).c_str(), NULL);
 
     nvgTextAlign(s->vg, NVG_ALIGN_LEFT);
     nvgFillColor(s->vg, get_tpms_color(fr));
-    nvgText(s->vg, x+w+margin-5, y+50, get_tpms_text(fr).c_str(), NULL);
+    nvgText(s->vg, x+w, y+50, get_tpms_text(fr).c_str(), NULL);
 
     nvgTextAlign(s->vg, NVG_ALIGN_RIGHT);
     nvgFillColor(s->vg, get_tpms_color(rl));
-    nvgText(s->vg, x-margin, y+h-10, get_tpms_text(rl).c_str(), NULL);
+    nvgText(s->vg, x, y+h-10, get_tpms_text(rl).c_str(), NULL);
 
     nvgTextAlign(s->vg, NVG_ALIGN_LEFT);
     nvgFillColor(s->vg, get_tpms_color(rr));
-    nvgText(s->vg, x+w+margin-5, y+h-10, get_tpms_text(rr).c_str(), NULL);
+    nvgText(s->vg, x+w, y+h-10, get_tpms_text(rr).c_str(), NULL);
 }
-
 
 // TPMS code added from OPKR
 // static void ui_draw_tpms(UIState *s) {
@@ -523,8 +533,8 @@ static void ui_draw_debug(UIState *s) {
   nvgTextAlign(s->vg, NVG_ALIGN_MIDDLE | NVG_ALIGN_MIDDLE);
 
   if (scene.nDebugUi1) {
-    ui_draw_text(s, 450, ui_viz_ry+360, scene.alertTextMsg1.c_str(), 40, COLOR_WHITE_ALPHA(100), "sans-semibold");
-    ui_draw_text(s, 450, ui_viz_ry+400, scene.alertTextMsg2.c_str(), 40, COLOR_WHITE_ALPHA(100), "sans-semibold");
+    ui_draw_text(s, 360, ui_viz_ry+360, scene.alertTextMsg1.c_str(), 40, COLOR_WHITE_ALPHA(100), "sans-semibold");
+    ui_draw_text(s, 360, ui_viz_ry+400, scene.alertTextMsg2.c_str(), 40, COLOR_WHITE_ALPHA(100), "sans-semibold");
   }
   
   nvgFillColor(s->vg, COLOR_WHITE_ALPHA(100));
