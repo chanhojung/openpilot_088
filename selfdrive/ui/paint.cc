@@ -391,14 +391,14 @@ static void ui_draw_tpms(UIState *s)
 
     const int w = 58;
     const int h = 126;
-    int x = 1920 - 160 ;
-    int y = 735 ;
+    int x = 1920 - 155;
+    int y = 735;
 
     const int margin = 10;
 
     ui_draw_image(s, {x, y, w, h}, "tire_pressure", 0.8f);
 
-    nvgFontSize(s->vg, 50);
+    nvgFontSize(s->vg, 45);
     nvgFontFace(s->vg, "sans-bold");
 
     nvgTextAlign(s->vg, NVG_ALIGN_RIGHT);
@@ -407,7 +407,7 @@ static void ui_draw_tpms(UIState *s)
 
     nvgTextAlign(s->vg, NVG_ALIGN_LEFT);
     nvgFillColor(s->vg, get_tpms_color(fr));
-    nvgText(s->vg, x+w+margin, y+50, get_tpms_text(fr).c_str(), NULL);
+    nvgText(s->vg, x+w+margin-5, y+50, get_tpms_text(fr).c_str(), NULL);
 
     nvgTextAlign(s->vg, NVG_ALIGN_RIGHT);
     nvgFillColor(s->vg, get_tpms_color(rl));
@@ -415,7 +415,7 @@ static void ui_draw_tpms(UIState *s)
 
     nvgTextAlign(s->vg, NVG_ALIGN_LEFT);
     nvgFillColor(s->vg, get_tpms_color(rr));
-    nvgText(s->vg, x+w+margin, y+h-10, get_tpms_text(rr).c_str(), NULL);
+    nvgText(s->vg, x+w+margin-5, y+h-10, get_tpms_text(rr).c_str(), NULL);
 }
 
 
