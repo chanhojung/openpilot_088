@@ -381,7 +381,6 @@ static std::string get_tpms_text(float tpms) {
 
 static void ui_draw_tpms(UIState *s)
 {
-    const UIScene *scene = &s->scene;
     auto car_state = (*s->sm)["carState"].getCarState();
     auto tpms = car_state.getTpms();
 
