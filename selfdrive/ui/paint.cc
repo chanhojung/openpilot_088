@@ -392,30 +392,30 @@ static void ui_draw_tpms(UIState *s)
     const int w = 58;
     const int h = 126;
     int x = 260 ;
-    int y = 730 ;
+    int y = 735 ;
 
     const int margin = 10;
 
     ui_draw_image(s, {x, y, w, h}, "tire_pressure", 0.8f);
 
-    nvgFontSize(s->vg, 60);
-    nvgFontFace(s->vg, "sans-semibold");
+    nvgFontSize(s->vg, 50);
+    nvgFontFace(s->vg, "sans-bold");
 
     nvgTextAlign(s->vg, NVG_ALIGN_RIGHT);
     nvgFillColor(s->vg, get_tpms_color(fl));
-    nvgText(s->vg, x-margin, y+45, get_tpms_text(fl).c_str(), NULL);
+    nvgText(s->vg, x-margin, y+50, get_tpms_text(fl).c_str(), NULL);
 
     nvgTextAlign(s->vg, NVG_ALIGN_LEFT);
     nvgFillColor(s->vg, get_tpms_color(fr));
-    nvgText(s->vg, x+w+margin, y+45, get_tpms_text(fr).c_str(), NULL);
+    nvgText(s->vg, x+w+margin, y+50, get_tpms_text(fr).c_str(), NULL);
 
     nvgTextAlign(s->vg, NVG_ALIGN_RIGHT);
     nvgFillColor(s->vg, get_tpms_color(rl));
-    nvgText(s->vg, x-margin, y+h-15, get_tpms_text(rl).c_str(), NULL);
+    nvgText(s->vg, x-margin, y+h-10, get_tpms_text(rl).c_str(), NULL);
 
     nvgTextAlign(s->vg, NVG_ALIGN_LEFT);
     nvgFillColor(s->vg, get_tpms_color(rr));
-    nvgText(s->vg, x+w+margin, y+h-15, get_tpms_text(rr).c_str(), NULL);
+    nvgText(s->vg, x+w+margin, y+h-10, get_tpms_text(rr).c_str(), NULL);
 }
 
 
@@ -523,8 +523,8 @@ static void ui_draw_debug(UIState *s) {
   nvgTextAlign(s->vg, NVG_ALIGN_MIDDLE | NVG_ALIGN_MIDDLE);
 
   if (scene.nDebugUi1) {
-    ui_draw_text(s, 500, ui_viz_ry+360, scene.alertTextMsg1.c_str(), 40, COLOR_WHITE_ALPHA(100), "sans-semibold");
-    ui_draw_text(s, 500, ui_viz_ry+440, scene.alertTextMsg2.c_str(), 40, COLOR_WHITE_ALPHA(100), "sans-semibold");
+    ui_draw_text(s, 450, ui_viz_ry+360, scene.alertTextMsg1.c_str(), 40, COLOR_WHITE_ALPHA(100), "sans-semibold");
+    ui_draw_text(s, 450, ui_viz_ry+400, scene.alertTextMsg2.c_str(), 40, COLOR_WHITE_ALPHA(100), "sans-semibold");
   }
   
   nvgFillColor(s->vg, COLOR_WHITE_ALPHA(100));
@@ -614,7 +614,7 @@ static void ui_draw_vision_scc_gap(UIState *s) {
   const int w = 180;
   const int h = 180;
   const int x = 15;
-  const int y = 685;  
+  const int y = 700;
   
   if(gap <= 0) {ui_draw_image(s, {x, y, w, h}, "lead_car_dist_0", 0.3f);}
   else if (gap == 1) {ui_draw_image(s, {x, y, w, h}, "lead_car_dist_1", 0.5f);}
