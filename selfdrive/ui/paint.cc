@@ -26,6 +26,7 @@
 #include <time.h> // opkr
 #include <string> // opkr
 #include "selfdrive/ui/dashcam.h"
+#include <cmath> //Neokii TPMS
 
 static void ui_print(UIState *s, int x, int y,  const char* fmt, ... )
 {
@@ -360,76 +361,135 @@ static void ui_draw_world(UIState *s) {
   nvgResetScissor(s->vg);
 }
 
-// TPMS code added from OPKR
-static void ui_draw_tpms(UIState *s) {
-  const UIScene &scene = s->scene;
-  char tpmsFl[64];
-  char tpmsFr[64];
-  char tpmsRl[64];
-  char tpmsRr[64];
-  int viz_tpms_w = 230;
-  int viz_tpms_h = 160;
-  int viz_tpms_x = s->fb_w - (bdr_s+425);
-  int viz_tpms_y = bdr_s;
-  float maxv = 0;
-  float minv = 300;
-  const Rect rect = {viz_tpms_x, viz_tpms_y, viz_tpms_w, viz_tpms_h};
-
-  if (maxv < scene.tpmsPressureFl) {maxv = scene.tpmsPressureFl;}
-  if (maxv < scene.tpmsPressureFr) {maxv = scene.tpmsPressureFr;}
-  if (maxv < scene.tpmsPressureRl) {maxv = scene.tpmsPressureRl;}
-  if (maxv < scene.tpmsPressureRr) {maxv = scene.tpmsPressureRr;}
-  if (minv > scene.tpmsPressureFl) {minv = scene.tpmsPressureFl;}
-  if (minv > scene.tpmsPressureFr) {minv = scene.tpmsPressureFr;}
-  if (minv > scene.tpmsPressureRl) {minv = scene.tpmsPressureRl;}
-  if (minv > scene.tpmsPressureRr) {minv = scene.tpmsPressureRr;}
-
-  // Draw Border
-  ui_draw_rect(s->vg, rect, COLOR_WHITE_ALPHA(100), 10, 20.);
-  // Draw Background
-  if ((maxv - minv) > 3) {
-    ui_fill_rect(s->vg, rect, COLOR_RED_ALPHA(80), 20);
-  } else {
-    ui_fill_rect(s->vg, rect, COLOR_BLACK_ALPHA(80), 20);
-  }
-
-  nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BASELINE);
-  const int pos_x = viz_tpms_x + (viz_tpms_w / 2);
-  const int pos_y = viz_tpms_y + 45;
-  ui_draw_text(s, pos_x, pos_y, "TPMS(psi)", 45, COLOR_WHITE_ALPHA(180), "sans-regular");
-  snprintf(tpmsFl, sizeof(tpmsFl), "%.1f", scene.tpmsPressureFl);
-  snprintf(tpmsFr, sizeof(tpmsFr), "%.1f", scene.tpmsPressureFr);
-  snprintf(tpmsRl, sizeof(tpmsRl), "%.1f", scene.tpmsPressureRl);
-  snprintf(tpmsRr, sizeof(tpmsRr), "%.1f", scene.tpmsPressureRr);
-  if (scene.tpmsPressureFl < 34) {
-    ui_draw_text(s, pos_x-55, pos_y+50, tpmsFl, 60, COLOR_RED, "sans-bold");
-  } else if (scene.tpmsPressureFl > 50) {
-    ui_draw_text(s, pos_x-55, pos_y+50, "N/A", 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
-  } else {
-    ui_draw_text(s, pos_x-55, pos_y+50, tpmsFl, 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
-  }
-  if (scene.tpmsPressureFr < 34) {
-    ui_draw_text(s, pos_x+55, pos_y+50, tpmsFr, 60, COLOR_RED, "sans-bold");
-  } else if (scene.tpmsPressureFr > 50) {
-    ui_draw_text(s, pos_x+55, pos_y+50, "N/A", 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
-  } else {
-    ui_draw_text(s, pos_x+55, pos_y+50, tpmsFr, 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
-  }
-  if (scene.tpmsPressureRl < 34) {
-    ui_draw_text(s, pos_x-55, pos_y+100, tpmsRl, 60, COLOR_RED, "sans-bold");
-  } else if (scene.tpmsPressureRl > 50) {
-    ui_draw_text(s, pos_x-55, pos_y+100, "N/A", 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
-  } else {
-    ui_draw_text(s, pos_x-55, pos_y+100, tpmsRl, 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
-  }
-  if (scene.tpmsPressureRr < 34) {
-    ui_draw_text(s, pos_x+55, pos_y+100, tpmsRr, 60, COLOR_RED, "sans-bold");
-  } else if (scene.tpmsPressureRr > 50) {
-    ui_draw_text(s, pos_x+55, pos_y+100, "N/A", 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
-  } else {
-    ui_draw_text(s, pos_x+55, pos_y+100, tpmsRr, 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
-  }
+// TPMS code added from Neokii
+static NVGcolor get_tpms_color(float tpms) {
+    if(tpms < 5 || tpms > 60) // N/A
+        return nvgRGBA(255, 255, 255, 200);
+    if(tpms < 30)
+        return nvgRGBA(255, 90, 90, 200);
+    return nvgRGBA(255, 255, 255, 200);
 }
+
+static std::string get_tpms_text(float tpms) {
+    if(tpms < 5 || tpms > 60)
+        return "";
+
+    char str[32];
+    snprintf(str, sizeof(str), "%.0f", round(tpms));
+    return std::string(str);
+}
+
+static void ui_draw_tpms(UIState *s)
+{
+    const UIScene *scene = &s->scene;
+    auto car_state = (*s->sm)["carState"].getCarState();
+    auto tpms = car_state.getTpms();
+
+    const float fl = tpms.getFl();
+    const float fr = tpms.getFr();
+    const float rl = tpms.getRl();
+    const float rr = tpms.getRr();
+
+    const int w = 58;
+    const int h = 126;
+    int x = bdr_s + 80;
+    int y = s->fb_h - bdr_s - h - 60 - 80;
+
+    const int margin = 10;
+
+    ui_draw_image(s, {x, y, w, h}, "tire_pressure", 0.8f);
+
+    nvgFontSize(s->vg, 60);
+    nvgFontFace(s->vg, "sans-semibold");
+
+    nvgTextAlign(s->vg, NVG_ALIGN_RIGHT);
+    nvgFillColor(s->vg, get_tpms_color(fl));
+    nvgText(s->vg, x-margin, y+45, get_tpms_text(fl).c_str(), NULL);
+
+    nvgTextAlign(s->vg, NVG_ALIGN_LEFT);
+    nvgFillColor(s->vg, get_tpms_color(fr));
+    nvgText(s->vg, x+w+margin, y+45, get_tpms_text(fr).c_str(), NULL);
+
+    nvgTextAlign(s->vg, NVG_ALIGN_RIGHT);
+    nvgFillColor(s->vg, get_tpms_color(rl));
+    nvgText(s->vg, x-margin, y+h-15, get_tpms_text(rl).c_str(), NULL);
+
+    nvgTextAlign(s->vg, NVG_ALIGN_LEFT);
+    nvgFillColor(s->vg, get_tpms_color(rr));
+    nvgText(s->vg, x+w+margin, y+h-15, get_tpms_text(rr).c_str(), NULL);
+}
+
+
+// TPMS code added from OPKR
+// static void ui_draw_tpms(UIState *s) {
+//   const UIScene &scene = s->scene;
+//   char tpmsFl[64];
+//   char tpmsFr[64];
+//   char tpmsRl[64];
+//   char tpmsRr[64];
+//   int viz_tpms_w = 230;
+//   int viz_tpms_h = 160;
+//   int viz_tpms_x = s->fb_w - (bdr_s+425);
+//   int viz_tpms_y = bdr_s;
+//   float maxv = 0;
+//   float minv = 300;
+//   const Rect rect = {viz_tpms_x, viz_tpms_y, viz_tpms_w, viz_tpms_h};
+
+//   if (maxv < scene.tpmsPressureFl) {maxv = scene.tpmsPressureFl;}
+//   if (maxv < scene.tpmsPressureFr) {maxv = scene.tpmsPressureFr;}
+//   if (maxv < scene.tpmsPressureRl) {maxv = scene.tpmsPressureRl;}
+//   if (maxv < scene.tpmsPressureRr) {maxv = scene.tpmsPressureRr;}
+//   if (minv > scene.tpmsPressureFl) {minv = scene.tpmsPressureFl;}
+//   if (minv > scene.tpmsPressureFr) {minv = scene.tpmsPressureFr;}
+//   if (minv > scene.tpmsPressureRl) {minv = scene.tpmsPressureRl;}
+//   if (minv > scene.tpmsPressureRr) {minv = scene.tpmsPressureRr;}
+
+//   // Draw Border
+//   ui_draw_rect(s->vg, rect, COLOR_WHITE_ALPHA(100), 10, 20.);
+//   // Draw Background
+//   if ((maxv - minv) > 3) {
+//     ui_fill_rect(s->vg, rect, COLOR_RED_ALPHA(80), 20);
+//   } else {
+//     ui_fill_rect(s->vg, rect, COLOR_BLACK_ALPHA(80), 20);
+//   }
+
+//   nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BASELINE);
+//   const int pos_x = viz_tpms_x + (viz_tpms_w / 2);
+//   const int pos_y = viz_tpms_y + 45;
+//   ui_draw_text(s, pos_x, pos_y, "TPMS(psi)", 45, COLOR_WHITE_ALPHA(180), "sans-regular");
+//   snprintf(tpmsFl, sizeof(tpmsFl), "%.1f", scene.tpmsPressureFl);
+//   snprintf(tpmsFr, sizeof(tpmsFr), "%.1f", scene.tpmsPressureFr);
+//   snprintf(tpmsRl, sizeof(tpmsRl), "%.1f", scene.tpmsPressureRl);
+//   snprintf(tpmsRr, sizeof(tpmsRr), "%.1f", scene.tpmsPressureRr);
+//   if (scene.tpmsPressureFl < 34) {
+//     ui_draw_text(s, pos_x-55, pos_y+50, tpmsFl, 60, COLOR_RED, "sans-bold");
+//   } else if (scene.tpmsPressureFl > 50) {
+//     ui_draw_text(s, pos_x-55, pos_y+50, "N/A", 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
+//   } else {
+//     ui_draw_text(s, pos_x-55, pos_y+50, tpmsFl, 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
+//   }
+//   if (scene.tpmsPressureFr < 34) {
+//     ui_draw_text(s, pos_x+55, pos_y+50, tpmsFr, 60, COLOR_RED, "sans-bold");
+//   } else if (scene.tpmsPressureFr > 50) {
+//     ui_draw_text(s, pos_x+55, pos_y+50, "N/A", 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
+//   } else {
+//     ui_draw_text(s, pos_x+55, pos_y+50, tpmsFr, 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
+//   }
+//   if (scene.tpmsPressureRl < 34) {
+//     ui_draw_text(s, pos_x-55, pos_y+100, tpmsRl, 60, COLOR_RED, "sans-bold");
+//   } else if (scene.tpmsPressureRl > 50) {
+//     ui_draw_text(s, pos_x-55, pos_y+100, "N/A", 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
+//   } else {
+//     ui_draw_text(s, pos_x-55, pos_y+100, tpmsRl, 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
+//   }
+//   if (scene.tpmsPressureRr < 34) {
+//     ui_draw_text(s, pos_x+55, pos_y+100, tpmsRr, 60, COLOR_RED, "sans-bold");
+//   } else if (scene.tpmsPressureRr > 50) {
+//     ui_draw_text(s, pos_x+55, pos_y+100, "N/A", 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
+//   } else {
+//     ui_draw_text(s, pos_x+55, pos_y+100, tpmsRr, 60, COLOR_WHITE_ALPHA(200), "sans-semibold");
+//   }
+// }
 
 static void ui_draw_standstill(UIState *s) {
   const UIScene &scene = s->scene;
@@ -1704,6 +1764,7 @@ void ui_nvg_init(UIState *s) {
     {"lead_radar", "../assets/addon/img/lead_radar.png"},
     {"lead_under_radar", "../assets/addon/img/lead_underline_radar.png"},
     {"lead_under_camera", "../assets/addon/img/lead_underline_camera.png"},
+    {"tire_pressure", "../assets/images/img_tire_pressure.png"},
   };
   for (auto [name, file] : images) {
     s->images[name] = nvgCreateImage(s->vg, file, 1);

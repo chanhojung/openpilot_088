@@ -66,7 +66,7 @@ void safety_setter_thread() {
       LOGW("got CarVin %s", value_vin.c_str());
       break;
     }
-    util::sleep_for(100);
+    util::sleep_for(20);
   }
 
   // VIN query done, stop listening to OBDII

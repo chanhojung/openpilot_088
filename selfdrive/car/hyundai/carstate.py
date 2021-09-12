@@ -171,6 +171,13 @@ class CarState(CarStateBase):
 
     self.parkBrake = cp.vl["TCS13"]["PBRAKE_ACT"] == 1
 
+    # TPMS code added from Neokii
+    tpms_unit = cp.vl["TPMS11"]["UNIT"] * 0.725 if int(cp.vl["TPMS11"]["UNIT"]) > 0 else 1.
+    ret.tpms.fl = tpms_unit * cp.vl["TPMS11"]["PRESSURE_FL"]
+    ret.tpms.fr = tpms_unit * cp.vl["TPMS11"]["PRESSURE_FR"]
+    ret.tpms.rl = tpms_unit * cp.vl["TPMS11"]["PRESSURE_RL"]
+    ret.tpms.rr = tpms_unit * cp.vl["TPMS11"]["PRESSURE_RR"]
+
     # TPMS code added from OPKR
     if cp.vl["TPMS11"]["UNIT"] == 0.0:
       ret.tpmsPressureFl = cp.vl["TPMS11"]["PRESSURE_FL"]
