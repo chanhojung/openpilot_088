@@ -391,7 +391,7 @@ static void ui_draw_tpms(UIState *s)
 
     const int w = 58;
     const int h = 126;
-    int x = 1920 - 170 ;
+    int x = 1920 - 160 ;
     int y = 735 ;
 
     const int margin = 10;
