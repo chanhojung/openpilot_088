@@ -391,7 +391,7 @@ static void ui_draw_tpms(UIState *s)
 
     const int w = 55;
     const int h = 123;
-    int x = 1920 - 156;
+    int x = 1920 - 158;
     int y = 740;
 
     const Rect rect = {x - w - 10, y - 5, w * 3 + 20, h + 10};
