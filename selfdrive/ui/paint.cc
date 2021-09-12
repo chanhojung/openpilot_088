@@ -371,7 +371,7 @@ static NVGcolor get_tpms_color(float tpms) {
 }
 
 static std::string get_tpms_text(float tpms) {
-    if(tpms < 5 || tpms > 60)
+    if(tpms < 30 || tpms > 50)
         return "";
 
     char str[32];
@@ -391,7 +391,7 @@ static void ui_draw_tpms(UIState *s)
 
     const int w = 55;
     const int h = 123;
-    int x = 1920 - 158;
+    int x = 1920 - 160;
     int y = 740;
 
     const Rect rect = {x - w - 10, y - 5, w * 3 + 20, h + 10};
@@ -399,9 +399,9 @@ static void ui_draw_tpms(UIState *s)
     // Draw Border
     ui_draw_rect(s->vg, rect, COLOR_WHITE_ALPHA(100), 10, 20.);
     // Draw Background
-    if (fl < 5 || fr < 5 || rl < 5 || rr < 5 || fl > 60 || fr > 60 || rl > 60 || rr > 60) {
+    if (fl < 30 || fr < 30 || rl < 30 || rr < 30 || fl > 50 || fr > 50 || rl > 50 || rr > 50) {
       ui_fill_rect(s->vg, rect, COLOR_RED_ALPHA(80), 20);
-    } else if (fl < 30 || fr < 30 || rl < 30 || rr < 30 ) {
+    } else if (fl < 35 || fr < 35 || rl < 35 || rr < 35 || fl > 45 || fr > 45 || rl > 45 || rr > 45) {
       ui_fill_rect(s->vg, rect, COLOR_ORANGE_ALPHA(80), 20);
     } else {
       ui_fill_rect(s->vg, rect, COLOR_BLACK_ALPHA(80), 20);
