@@ -409,24 +409,24 @@ static void ui_draw_tpms(UIState *s)
 
     ui_draw_image(s, {x, y, w, h}, "tire_pressure", 0.8f);
 
-    nvgFontSize(s->vg, 43);
+    nvgFontSize(s->vg, 40);
     nvgFontFace(s->vg, "sans-bold");
 
     nvgTextAlign(s->vg, NVG_ALIGN_RIGHT);
     nvgFillColor(s->vg, get_tpms_color(fl));
-    nvgText(s->vg, x, y+50, get_tpms_text(fl).c_str(), NULL);
+    nvgText(s->vg, x-10, y+50, get_tpms_text(fl).c_str(), NULL);
 
     nvgTextAlign(s->vg, NVG_ALIGN_LEFT);
     nvgFillColor(s->vg, get_tpms_color(fr));
-    nvgText(s->vg, x+w, y+50, get_tpms_text(fr).c_str(), NULL);
+    nvgText(s->vg, x+w+10, y+50, get_tpms_text(fr).c_str(), NULL);
 
     nvgTextAlign(s->vg, NVG_ALIGN_RIGHT);
     nvgFillColor(s->vg, get_tpms_color(rl));
-    nvgText(s->vg, x, y+h-10, get_tpms_text(rl).c_str(), NULL);
+    nvgText(s->vg, x-10, y+h-10, get_tpms_text(rl).c_str(), NULL);
 
     nvgTextAlign(s->vg, NVG_ALIGN_LEFT);
     nvgFillColor(s->vg, get_tpms_color(rr));
-    nvgText(s->vg, x+w, y+h-10, get_tpms_text(rr).c_str(), NULL);
+    nvgText(s->vg, x+w+10, y+h-10, get_tpms_text(rr).c_str(), NULL);
 }
 
 // TPMS code added from OPKR
