@@ -363,9 +363,9 @@ static void ui_draw_world(UIState *s) {
 
 // TPMS code added from Neokii
 static NVGcolor get_tpms_color(float tpms) {
-    if(tpms < 25 || tpms > 50) // N/A
+    if(tpms < 30 || tpms > 45) // N/A
         return nvgRGBA(255, 255, 255, 200);
-    if(tpms < 30 || tpms > 45)
+    if(tpms < 33 || tpms > 42)
         return nvgRGBA(255, 90, 90, 200);
     return nvgRGBA(255, 255, 255, 200);
 }
@@ -399,9 +399,9 @@ static void ui_draw_tpms(UIState *s)
     // Draw Border
     ui_draw_rect(s->vg, rect, COLOR_WHITE_ALPHA(100), 10, 20.);
     // Draw Background
-    if (fl < 30 || fr < 25 || rl < 25 || rr < 25 || fl > 50 || fr > 50 || rl > 50 || rr > 50) {
+    if (fl < 30 || fr < 30 || rl < 30 || rr < 30 || fl > 45 || fr > 45 || rl > 45 || rr > 45) {
       ui_fill_rect(s->vg, rect, COLOR_RED_ALPHA(80), 20);
-    } else if (fl < 30 || fr < 30 || rl < 30 || rr < 30 || fl > 45 || fr > 45 || rl > 45 || rr > 45) {
+    } else if (fl < 33 || fr < 33 || rl < 33 || rr < 33 || fl > 42 || fr > 42 || rl > 42 || rr > 42) {
       ui_fill_rect(s->vg, rect, COLOR_ORANGE_ALPHA(80), 20);
     } else {
       ui_fill_rect(s->vg, rect, COLOR_GREEN_ALPHA(80), 20);
