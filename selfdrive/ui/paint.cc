@@ -400,13 +400,14 @@ static void ui_draw_tpms(UIState *s)
     ui_draw_rect(s->vg, rect, COLOR_WHITE_ALPHA(100), 10, 20.);
     // Draw Background
     if (fl < 30 || fr < 30 || rl < 30 || rr < 30 || fl > 45 || fr > 45 || rl > 45 || rr > 45) {
-      ui_fill_rect(s->vg, rect, COLOR_RED_ALPHA(80), 20);
+      ui_fill_rect(s->vg, rect, COLOR_RED_ALPHA(50), 20);
     } else if (fl < 33 || fr < 33 || rl < 33 || rr < 33 || fl > 42 || fr > 42 || rl > 42 || rr > 42) {
-      ui_fill_rect(s->vg, rect, COLOR_ORANGE_ALPHA(80), 20);
+      ui_fill_rect(s->vg, rect, COLOR_ORANGE_ALPHA(50), 20);
     } else {
-      ui_fill_rect(s->vg, rect, COLOR_GREEN_ALPHA(80), 20);
+      ui_fill_rect(s->vg, rect, COLOR_GREEN_ALPHA(50), 20);
     }
 
+    nvgBeginPath(s->vg);
     ui_draw_image(s, {x, y, w, h}, "tire_pressure", 0.8f);
 
     nvgFontSize(s->vg, 40);
